@@ -14,7 +14,7 @@ const App: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      content: '你好！我是基于 OpenAI GPT 的AI助手，有什么可以帮助你的吗？',
+      content: '你好！我是你的AI助手，有什么可以帮助你的吗？',
       role: 'assistant',
       timestamp: new Date(),
     }
@@ -27,7 +27,8 @@ const App: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // 自动滚动到底部
+  // ... 保持原有的函数逻辑不变 ...
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -36,13 +37,12 @@ const App: React.FC = () => {
     scrollToBottom();
   }, [messages]);
 
-  // 调用 OpenAI API
   const callOpenAI = async (userMessage: string): Promise<string> => {
     // if (!apiKey.trim()) {
     //   throw new Error('请先设置 OpenAI API Key');
     // }
 
-    const response = await fetch('https://api.botspace.site/graphql', {
+    const response = await fetch('https://api.botspace.lol/graphql', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -53,17 +53,15 @@ const App: React.FC = () => {
       }),
     });
 
-
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData.error?.message || `API 请求失败: ${response.status}`);
     }
 
     const data = await response.json();
-    return data.choices[0]?.message?.content || '抱歉，我没有收到有效的回复。';
+    return data?.data?.ask || '抱歉，我没有收到有效的回复。';
   };
 
-  // 发送消息
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return;
 
@@ -105,12 +103,11 @@ const App: React.FC = () => {
     }
   };
 
-  // 清空聊天
   const clearChat = () => {
     setMessages([
       {
         id: '1',
-        content: '你好！我是你的AI助手，有什么可以帮助你的吗？',
+        content: '你好！我是基于 OpenAI GPT 的AI助手，有什么可以帮助你的吗？',
         role: 'assistant',
         timestamp: new Date(),
       }
@@ -118,7 +115,6 @@ const App: React.FC = () => {
     setError(null);
   };
 
-  // 处理键盘事件
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -127,12 +123,12 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="app">
+    <div className="chat-app">
       {/* 头部 */}
-      <header className="header">
+      <header className="chat-header">
         <div className="header-title">
           <h1>AI 聊天助手</h1>
-          <p>基于 OpenAI GPT-3.5</p>
+          <p>基于 OpenAI</p>
         </div>
         <div className="header-actions">
           <button 
@@ -160,52 +156,65 @@ const App: React.FC = () => {
       )}
 
       {/* 消息列表 */}
-      <div className="messages">
-        {messages.map((message) => (
-          <div key={message.id} className={`message ${message.role}`}>
-            <div className="message-avatar">
-              {message.role === 'user' ? <User size={16} /> : <Bot size={16} />}
-            </div>
-            <div className="message-content">
-              <div className="message-header">
-                <span className="message-sender">
-                  {message.role === 'user' ? '你' : 'AI助手'}
-                </span>
-                <span className="message-time">
-                  {message.timestamp.toLocaleTimeString()}
-                </span>
+      <div className="messages-container">
+        <div className="messages-wrapper">
+          {messages.map((message) => (
+            <div key={message.id} className={`message-row ${message.role}`}>
+              <div className={`message-bubble ${message.role}`}>
+                <div className="message-header">
+                  <div className={`message-avatar ${message.role}`}>
+                    {message.role === 'user' ? <User size={14} /> : <Bot size={14} />}
+                  </div>
+                  <div className="message-info">
+                    <span className="message-sender">
+                      {message.role === 'user' ? '你' : 'AI助手'}
+                    </span>
+                    <span className="message-time">
+                      {message.timestamp.toLocaleTimeString()}
+                    </span>
+                  </div>
+                </div>
+                <div className="message-content">
+                  {message.isLoading ? (
+                    <div className="loading-wrapper">
+                      <div className="loading-dots">
+                        <div className="dot"></div>
+                        <div className="dot"></div>
+                        <div className="dot"></div>
+                      </div>
+                      <span className="loading-text">正在思考...</span>
+                    </div>
+                  ) : (
+                    <div className="message-text">{message.content}</div>
+                  )}
+                </div>
               </div>
-              <div className="message-text">
-                {message.isLoading ? (
-                  <span className="loading">正在思考...</span>
-                ) : (
-                  message.content
-                )}
-              </div>
             </div>
-          </div>
-        ))}
-        <div ref={messagesEndRef} />
+          ))}
+          <div ref={messagesEndRef} />
+        </div>
       </div>
 
       {/* 输入框 */}
       <div className="input-container">
-        <textarea
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyPress={handleKeyPress}
-          placeholder="输入消息... (Enter 发送，Shift+Enter 换行)"
-          className="input"
-          rows={1}
-          disabled={isLoading}
-        />
-        <button 
-          onClick={sendMessage}
-          disabled={!input.trim() || isLoading}
-          className="send-button"
-        >
-          <Send size={18} />
-        </button>
+        <div className="input-wrapper">
+          <textarea
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyPress={handleKeyPress}
+            placeholder="输入消息... (Enter 发送，Shift+Enter 换行)"
+            className="message-input"
+            rows={1}
+            disabled={isLoading}
+          />
+          <button 
+            onClick={sendMessage}
+            disabled={!input.trim() || isLoading}
+            className="send-button"
+          >
+            <Send size={18} />
+          </button>
+        </div>
       </div>
 
       {/* 设置弹窗 */}
@@ -215,7 +224,7 @@ const App: React.FC = () => {
             <h2>设置</h2>
             <div className="form-group">
               <label>OpenAI API Key</label>
-              <div className="input-wrapper">
+              <div className="input-wrapper-modal">
                 <input
                   type={showApiKey ? 'text' : 'password'}
                   value={apiKey}
