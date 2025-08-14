@@ -135,13 +135,13 @@ const App: React.FC = () => {
           <p>基于 OpenAI GPT-3.5</p>
         </div>
         <div className="header-actions">
-          {/* <button 
+          <button 
             onClick={() => setShowSettings(true)}
             className="icon-button"
             title="设置"
           >
             <Settings size={18} />
-          </button> */}
+          </button>
           <button 
             onClick={clearChat}
             className="icon-button"
