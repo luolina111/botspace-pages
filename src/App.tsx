@@ -42,7 +42,7 @@ const App: React.FC = () => {
     //   throw new Error('请先设置 OpenAI API Key');
     // }
 
-    const response = await fetch('https://botspace.site/graphql', {
+    const response = await fetch('https://api.botspace.site/graphql', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
